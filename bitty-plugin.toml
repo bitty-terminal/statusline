@@ -4,32 +4,36 @@
 # `docs/specifications/plugin-platform-rfc.md` (OQ-012). The plugin manager and
 # the host parse this file independently before any plugin code runs.
 #
-# `just manifest` validates this file. Until `bitty-plugin-lint` is published
-# by bitty-plugin-sdk (R-SDK-2), that recipe uses the transitional validator
-# shipped in `scripts/validate-manifest.mjs`.
+# `just manifest` validates this file; `bitty-plugin-lint` from
+# bitty-plugin-sdk (R-SDK-2) is the authoritative check against the same
+# accepted contract.
 
 [plugin]
 id = "bitty-terminal.statusline"
 name = "Statusline"
 version = "0.1.0"
 description = "Cwd, mode, Git and task presentation via status-component composition"
-# Optional SPDX expression. Add a LICENSE file and set this before publishing.
-# license = "MIT"
+license = "MIT"
 
 [compat]
-# Application and Plugin API ranges. Adjust to the host release you target;
-# both are syntax-validated here and resolved by the host at install time.
-bitty = ">=0.5,<1.0"
+# Unchanged from the bundled `bitty-terminal.statusline` realization.
+bitty = ">=0.1,<1.0"
 plugin-api = "^1.0"
 
 [capabilities]
 # Deny by default: omit this table entirely when the plugin needs no authority.
-# Request capabilities one by one; unknown identifiers fail validation and
-# there is no allow-all identifier. `platform.notify` backs the example command
-# in `lua/statusline/init.lua`.
-platform.notify = true
+# Unknown identifiers fail validation and there is no allow-all identifier.
+#
+# `terminal.semantic-read` gates `bitty.terminal.snapshot`, the read-only
+# committed-state observation the statusline composes from. `ui.rich` gates
+# `bitty.ui.mount`/`bitty.ui.update` on the `statusline` slot. Both identifiers
+# are unchanged from the bundled manifest.
+terminal.semantic-read = true
+ui.rich = true
 
 [lazy]
 # Static triggers let the host register the plugin without creating a VM.
-# Commands are plugin-qualified: `<plugin-id>:<resource>`.
-commands = ["bitty-terminal.statusline:hello"]
+# The statusline has no commands; the manifest-declared observation events
+# activate and drive recomposition. Both events are unchanged from the bundled
+# manifest.
+events = ["terminal.cwd-changed", "terminal.title-changed"]

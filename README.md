@@ -1,80 +1,133 @@
-# Statusline
+# Bitty Statusline
 
-Cwd, mode, Git and task presentation via status-component composition
+Cwd, mode, Git, and task presentation for the
+[Bitty terminal](https://github.com/bitty-terminal/bitty), composed through the
+statusline slot with declarative fragments only.
 
-This repository was generated from
+- Plugin id: `bitty-terminal.statusline`
+- Lua module: `lua/statusline/`
+- Capabilities: `terminal.semantic-read`, `ui.rich`
+- Lazy events: `terminal.cwd-changed`, `terminal.title-changed`
+
+This repository is the independent first-party package created by the bundled
+plugin split decision (OQ-053, `bitty-plugins-docs` `product/bundled-plugin-split-decision.md`),
+owned by `bitty` `CTX-0398`. It was scaffolded from
 [bitty-plugin-template](https://github.com/bitty-terminal/bitty-plugin-template).
-It is a minimal Bitty plugin package: a static manifest, one Lua entry point,
-and a CI quality gate.
 
-> Status: pre-implementation. The Bitty plugin host and the accepted Plugin
-> API v1 bindings are still landing. `just check` validates the manifest and
-> parses the Lua entry point; the manifest check uses a transitional local
-> validator until `bitty-plugin-lint` is published by
-> [bitty-plugin-sdk](https://github.com/bitty-terminal/bitty-plugin-sdk)
-> (R-SDK-2). The `lua/<module>/` layout follows the candidate plugin-repository
-> structure in bitty-docs; confirm it against the host loader contract before
-> publishing.
+## Status
+
+Pre-implementation ecosystem: the plugin package, manifest, and presentation
+policy are implemented and tested headlessly; the Bitty host is still landing
+the Plugin API v1 statusline bridge. Nothing here is a compatibility promise
+beyond the manifest `[compat]` ranges.
 
 ## Layout
 
-| Path                            | Purpose                                                                                                |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `bitty-plugin.toml`             | Static manifest: identity, compatibility, capability requests, and lazy triggers.                      |
-| `lua/statusline/init.lua`       | Entry point evaluated once per activation; every resource it creates belongs to the plugin generation. |
-| `scripts/validate-manifest.mjs` | Transitional manifest check using the Bun TOML parser; no dependencies.                                |
-| `justfile`                      | Quality gates with pinned tool versions.                                                               |
-| `.github/workflows/ci.yml`      | CI gate with a read-only token and SHA-pinned actions.                                                 |
+| Path                            | Purpose                                                                                         |
+| ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `bitty-plugin.toml`             | Static manifest: identity, compatibility, capability requests, and lazy triggers.               |
+| `lua/statusline/init.lua`       | Entry point evaluated once per activation; mounts the statusline block and refreshes on events. |
+| `lua/statusline/format.lua`     | Bounded, host-free component composition and code-point-safe truncation.                        |
+| `lua/statusline/scene.lua`      | Declarative `Row`/`Text` statusline composition.                                                |
+| `tests/`                        | Lua 5.4 behavior suite, LuaLS conformance, and the SDK manifest-lint wrapper.                   |
+| `scripts/validate-manifest.mjs` | Transitional manifest check; `bitty-plugin-lint` (R-SDK-2) is authoritative.                    |
+| `justfile`                      | Quality gates with pinned tool versions.                                                        |
+
+## Behavior
+
+The plugin keeps the bundled statusline behavior and bounds:
+
+- components composed from the read-only semantic snapshot: `cwd:` from the
+  latest zone `metadata.cwd`, `title:` from the snapshot `title`, and `exit:`
+  from the latest zone `metadata.exit_code`;
+- at most `8` components (`STATUSLINE_MAX_COMPONENTS`), `64` characters per
+  component value (`STATUSLINE_COMPONENT_MAX_CHARS`), and `128` characters
+  total (`MAX_OVERLAY_TEXT_LEN`), truncated at a UTF-8 code-point boundary;
+- one declarative `Row` of `Text` fragments mounted in the `statusline` slot
+  (`Text`, `Row`, `Column`, `List` are the only Plugin API v1 node kinds);
+- recomposition on the manifest-declared observation events
+  `terminal.cwd-changed` and `terminal.title-changed`;
+- empty state yields an empty row (no fallback pollution).
+
+Optional settings under `plugins.bitty-terminal.statusline.*` (`separator`,
+`show_cwd`, `show_title`, `show_exit`, `max_components`,
+`component_max_chars`) adapt the composition; every default matches the
+bundled realization. Settings are not part of the v1 manifest and are read
+through `bitty.settings.get`.
+
+## What moved and what stayed bundled
+
+This package owns the statusline presentation only. Two boundaries are
+explicit (OQ-053 decision record):
+
+- the **workspaceline claim** (ordering, exclusive claim, close policy) and
+  workspace lifecycle are workspace-core behavior and stay bundled in `bitty`;
+- **shell integration** stays bundled and remains the upstream provider of the
+  OSC 7/133 semantic zones this plugin observes.
+
+The plugin id and capability identifiers (`terminal.semantic-read`, `ui.rich`)
+are unchanged from the bundled `bitty-terminal.statusline` manifest; the split
+changes no identity. The bundled realization used the lower-level Panel
+Runtime (`PanelType::Helper`); the accepted Plugin API v1 Lua path composes in
+the `statusline` UI slot instead.
+
+## Known gaps
+
+- **Host statusline bridge.** The current `bitty` Lua bridge implements
+  commands, events, settings, store, terminal snapshots, notifications, and
+  timers, but not `bitty.ui.mount`/`bitty.ui.update`. The plugin activates,
+  subscribes its events, and observes snapshots, but presents no visible block
+  until that surface lands. Tracked as a follow-up task in `bitty`.
+- **Status-component provider.** The accepted v1 surface exposes no
+  `StatusProvider`/`status.component` provider contract; the Plugin Reuse and
+  Provider Ecology RFC is draft/post-1.0. The plugin composes its fragments
+  into one host-owned `Row` as the v1 adapter.
+- **Git and task fragments.** The bundled presentation name includes Git and
+  task state, but the bundled Rust realization composed only cwd, title, and
+  exit code, and v1 exposes no Git/task service. Those fragments are not
+  implemented here and follow the provider ecology.
 
 ## Development
 
-Run the same gate CI runs:
+Run the same gates CI runs:
 
 ```sh
+bun install --frozen-lockfile
 just check
 ```
 
-`just manifest` validates `bitty-plugin.toml` against the accepted contract in
-bitty-docs `docs/specifications/plugin-platform-rfc.md` (file name, identity,
-compatibility, capability closed set, lazy triggers, hard limits). `just lua`
-parses the entry point with a pinned Lua parser.
+`just check` runs Markdown lint, Prettier format check, the transitional
+manifest validator, the pinned Lua parser, and the Lua/LuaLS/SDK-manifest test
+suites. `lua5.4` is required for the behavior suite; `lua-language-server` and
+`bitty-plugin-lint` are optional and their checks skip with exit 0 when absent.
 
-## Capabilities
+## Install
 
-Capabilities are deny by default: a request absent from `[capabilities]` is
-denied, identifiers come from a closed set, and there is no allow-all entry.
-Request the narrowest identifier the plugin actually uses, one at a time.
-High-risk identifiers (`terminal.raw-read`, `terminal.input.all`,
-`ui.protocol-register`, `debug.control`, `runtime.plugin-manage`, and similar)
-trigger distinct consent and should not be added without a reviewed need.
+An external package is installed from a local checkout with the Bitty CLI:
 
-Filesystem access is declared as structured requests with explicit patterns:
-
-```toml
-[[capabilities.filesystem]]
-access = "read"
-paths = ["~/Documents/**/*.md"]
+```sh
+bitty plugin install /path/to/statusline
 ```
 
-## API contract
+The registry entry in
+[bitty-plugins](https://github.com/bitty-terminal/bitty-plugins) points at this
+repository; this plugin previously shipped as a bundled (staged, disabled by
+default) `bitty-terminal.statusline`.
 
-The `bitty` namespace used by `init.lua` is the accepted Plugin API v1 surface
-sketch. The authoritative Lua bindings and type definitions are generated by
-the SDK (`bitty.d.lua`, R-SDK-1); re-check `init.lua` against that contract
-when it lands, and do not use surface the contract does not define.
+## Migration note
 
-## Before publishing
-
-1. Add a `LICENSE` file and set `plugin.license` in `bitty-plugin.toml`.
-2. Confirm `compat.bitty` and `compat.plugin-api` match the host releases you
-   support.
-3. Replace this README's status note once the plugin is functional and tested
-   against a released host.
-4. Keep the repository free of secrets, install scripts, and ambient
-   authority.
+A configuration that previously enabled or disabled the bundled
+`bitty-terminal.statusline` keeps the same plugin id, capabilities, grant
+identity, and lazy events, so grant records and scripts continue to resolve
+after the catalog entry is replaced by this registry package. The package is
+not enabled by default, and `bitty --safe` skips it exactly as it skips any
+other plugin. Shell integration and the workspaceline claim are unaffected
+because they remain bundled.
 
 ## Security
 
-Report vulnerabilities through the process in the umbrella project's security
-policy rather than a public issue. This scaffold contains no credentials and no
-install-time execution.
+Only `terminal.semantic-read` and `ui.rich` are requested. The plugin has no
+filesystem, process, network, clipboard, terminal-input, terminal-write, or
+persistent-state authority. It observes committed terminal state read-only and
+performs no I/O. Report vulnerabilities through the process in the umbrella
+project's security policy rather than a public issue.
