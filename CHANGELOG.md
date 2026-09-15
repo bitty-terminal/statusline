@@ -29,7 +29,19 @@ recorded here. The format follows
   releases existed, so no migration is required.
 - Composition uses the accepted Plugin API v1 Lua statusline slot
   (`bitty.ui.mount("statusline", ...)`) instead of the bundled realization's
-  lower-level Panel Runtime path. Plugin id, capabilities
-  (`terminal.semantic-read`, `ui.rich`), and lazy events are unchanged.
+  lower-level Panel Runtime path. Plugin id and capabilities
+  (`terminal.semantic-read`, `ui.rich`) are unchanged from the bundled
+  realization; the v1 hardening wave adds the `focus.changed` and
+  `terminal.opened` lazy triggers.
+
+### Fixed
+
+- Hardened the v1 statusline path: refreshes keep the last-known-good row when
+  a read, composition, or `bitty.ui.update` call is rejected instead of
+  propagating to the event dispatcher; the block renders once at activation
+  instead of staying blank until the first event; `focus.changed` and
+  `terminal.opened` syncs re-render; `max_components` and
+  `component_max_chars` clamp into their documented bounds; the semantic zone
+  scan is capped; and only numeric `exit_code` values count as status.
 
 [Unreleased]: https://github.com/bitty-terminal/statusline/commits/main

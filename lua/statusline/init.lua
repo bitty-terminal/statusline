@@ -76,8 +76,9 @@ local function snapshot()
   if bitty.terminal == nil or type(bitty.terminal.snapshot) ~= "function" then
     return {}
   end
-  -- Errors propagate: a denied `terminal.semantic-read` must fail closed rather
-  -- than silently render an empty statusline.
+  -- Errors surface only to `refresh`, which contains them: a denied
+  -- `terminal.semantic-read` keeps the last-known-good rendering instead of
+  -- blanking the statusline (H-SL-01 / R12).
   local value = bitty.terminal.snapshot({ scope = "semantic" })
   if type(value) == "table" then
     return value
@@ -93,26 +94,60 @@ if bitty.ui ~= nil and type(bitty.ui.mount) == "function" then
   block = bitty.ui.mount("statusline", scene.empty())
 end
 
+-- Last successfully composed component list, and the keep-alive rule
+-- (H-SL-01 / R12): `refresh` contains every read/compose/update failure. On
+-- failure the mounted block is left untouched (so the slot keeps its
+-- last-known-good output) and nothing propagates to the event dispatcher.
+local last_good = nil
+
 -- Recompute the bounded components from the semantic snapshot and update the
--- mounted block. Returns the bounded component list for callers/tests.
+-- mounted block. Returns the bounded component list for callers/tests, or the
+-- last-known-good list when the refresh fails.
 local function refresh()
   local opts = options()
-  local components = format.components(snapshot(), opts)
-  if block ~= nil then
-    bitty.ui.update(block, scene.row(components, opts.separator))
+  local ok, components = pcall(function()
+    return format.components(snapshot(), opts)
+  end)
+  if not ok then
+    return last_good
   end
+  if block ~= nil then
+    local updated = pcall(function()
+      return bitty.ui.update(block, scene.row(components, opts.separator))
+    end)
+    if not updated then
+      return last_good
+    end
+  end
+  last_good = components
   return components
 end
 
 M.refresh = refresh
 
--- Reactive recomposition on the manifest-declared observation events.
-bitty.events.subscribe("terminal.cwd-changed", function(_event)
-  refresh()
-end)
+-- Reactive recomposition on the manifest-declared observation events. The
+-- accepted event contract marks cwd, title, and focus changes as coalescable:
+-- the host collapses rapid bursts to the latest value before delivery, so
+-- plugin-side debouncing is unnecessary; `terminal.opened` is a one-shot
+-- observation. Each delivered event refreshes once and the one-shot timer
+-- surface is registration-window-only, so handlers refresh directly.
+-- Refresh errors are contained, so a denied read or update never propagates to
+-- the dispatcher (H-SL-01 / R12).
+local function on_event(_event)
+  pcall(refresh)
+end
 
-bitty.events.subscribe("terminal.title-changed", function(_event)
-  refresh()
-end)
+-- The subscription list is the single reactive rule (R28): the predicate and
+-- the subscribed kinds cannot disagree because both come from
+-- `format.REACTIVE_EVENTS`, which mirrors `bitty-plugin.toml` `lazy.events`.
+for _, event_kind in ipairs(format.REACTIVE_EVENTS) do
+  if format.is_reactive_event(event_kind) then
+    bitty.events.subscribe(event_kind, on_event)
+  end
+end
+
+-- Render once at activation (M-SL-02) so the statusline shows committed state
+-- immediately instead of staying blank until the first event.
+refresh()
 
 return M
