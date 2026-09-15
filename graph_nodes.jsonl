@@ -1,1 +1,3 @@
 {"created_at":"2026-09-15T05:26:26.400997779+00:00","description":null,"id":"01M2HRFRBB6RVS45M31Z0FXPW5","metadata":"{\"auto_generated_by\":\"checkpoint\"}","name":".carryctx/config.toml","node_type":"file","updated_at":"2026-09-15T05:26:26.400997779+00:00"}
+{"created_at":"2026-09-15T07:05:53.099795882+00:00","description":null,"id":"01M2HY5V6KPTACCP43RT23FSPE","metadata":"{\"auto_generated_by\":\"checkpoint\"}","name":".gitignore","node_type":"file","updated_at":"2026-09-15T07:05:53.099795882+00:00"}
+{"created_at":"2026-09-15T07:05:53.099795882+00:00","description":null,"id":"01M2HY5V6M2FY5JJYYT12EH213","metadata":"{\"auto_generated_by\":\"checkpoint\"}","name":".markdownlint-cli2.jsonc","node_type":"file","updated_at":"2026-09-15T07:05:53.099795882+00:00"}
