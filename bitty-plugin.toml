@@ -11,7 +11,7 @@
 [plugin]
 id = "bitty-terminal.statusline"
 name = "Statusline"
-version = "0.1.0"
+version = "0.0.1"
 description = "Cwd, mode, Git and task presentation via status-component composition"
 license = "MIT"
 

@@ -23,6 +23,10 @@ recorded here. The format follows
 
 ### Changed
 
+- Realign package version from `0.1.0` to `0.0.1` per bitty-docs decision
+  DIR-019 (everything pre-1.0-stable stays on the `0.0.x` line).
+  `bitty-plugin.toml` and `package.json` stay in sync; no published tags or
+  releases existed, so no migration is required.
 - Composition uses the accepted Plugin API v1 Lua statusline slot
   (`bitty.ui.mount("statusline", ...)`) instead of the bundled realization's
   lower-level Panel Runtime path. Plugin id, capabilities
