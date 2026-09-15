@@ -7,7 +7,8 @@ statusline slot with declarative fragments only.
 - Plugin id: `bitty-terminal.statusline`
 - Lua module: `lua/statusline/`
 - Capabilities: `terminal.semantic-read`, `ui.rich`
-- Lazy events: `terminal.cwd-changed`, `terminal.title-changed`
+- Lazy events: `terminal.cwd-changed`, `terminal.title-changed`, `focus.changed`,
+  `terminal.opened`
 
 This repository is the independent first-party package created by the bundled
 plugin split decision (OQ-053, `bitty-plugins-docs` `product/bundled-plugin-split-decision.md`),
@@ -46,7 +47,12 @@ The plugin keeps the bundled statusline behavior and bounds:
 - one declarative `Row` of `Text` fragments mounted in the `statusline` slot
   (`Text`, `Row`, `Column`, `List` are the only Plugin API v1 node kinds);
 - recomposition on the manifest-declared observation events
-  `terminal.cwd-changed` and `terminal.title-changed`;
+  `terminal.cwd-changed`, `terminal.title-changed`, `focus.changed` (pane/tab
+  switches), and `terminal.opened`, with rapid bursts coalesced host-side by
+  the accepted event contract;
+- a render at activation and on every delivered event; a rejected read,
+  composition, or update keeps the last-known-good row instead of blanking the
+  statusline (`H-SL-01`);
 - empty state yields an empty row (no fallback pollution).
 
 Optional settings under `plugins.bitty-terminal.statusline.*` (`separator`,

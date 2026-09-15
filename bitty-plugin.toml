@@ -34,6 +34,10 @@ ui.rich = true
 [lazy]
 # Static triggers let the host register the plugin without creating a VM.
 # The statusline has no commands; the manifest-declared observation events
-# activate and drive recomposition. Both events are unchanged from the bundled
+# activate and drive recomposition. Every kind is in the closed v1 event set
+# (`bitty-plugin-sdk` EVENT_KINDS) and matches `statusline.format`
+# `REACTIVE_EVENTS`, which `init.lua` subscribes through `is_reactive_event`:
+# cwd, title, focus (pane/tab switches) and terminal open. Focus and open were
+# added for the v1 hardening wave; cwd/title are unchanged from the bundled
 # manifest.
-events = ["terminal.cwd-changed", "terminal.title-changed"]
+events = ["terminal.cwd-changed", "terminal.title-changed", "focus.changed", "terminal.opened"]
