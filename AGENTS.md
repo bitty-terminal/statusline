@@ -8,7 +8,7 @@
   neither owns this repository's Git or CarryCtx state.
 - Enter this repository before running Git, CarryCtx, validation, or toolchain
   commands.
-- `bitty-docs` and `bitty-plugins-docs` are the canonical sources for plugin
+- [bitty-docs](https://github.com/bitty-terminal/bitty-docs) and [bitty-plugins-docs](https://github.com/bitty-terminal/bitty-plugins-docs) are the canonical sources for plugin
   architecture, API, security, packaging, compatibility, and public-behavior
   contracts. This repository must not invent capabilities, lifecycle
   semantics, or release policy.
@@ -28,7 +28,7 @@
   security note; never widen silently.
 - Boundary: the workspaceline claim (ordering, exclusive claim, close policy)
   and workspace lifecycle are workspace-core behavior and stay bundled in
-  `bitty`; shell integration stays bundled and remains the OSC 7/133
+  [bitty](https://github.com/bitty-terminal/bitty); shell integration stays bundled and remains the OSC 7/133
   semantic-zone provider the statusline observes. This package owns the
   statusline presentation only.
 - Origin: this package is the independent first-party realization created by
@@ -87,8 +87,7 @@
 
 ## Toolchain policy
 
-- Never use `npm`, `npx`, or `yarn` here. JavaScript execution and package
-  management use `bun` / `bunx --bun` exclusively.
+- JavaScript runs on `bun` (pinned version in the justfile).
 - Never invoke formatters, linters, or parsers directly by name. Run gates
   through the justfile: `just check`, `just fmt`, `just lint`, `just manifest`,
   `just lua`, `just test`.
@@ -111,6 +110,7 @@
 ## Verification and handoff
 
 - Keep edits inside the active CarryCtx scope and preserve unrelated work.
+- Ephemeral scratch goes under `/tmp/bitty/`; durable material goes under repo-local `recording/` (gitignored).
 - Run `just check` plus `actionlint` on affected workflows and
   `gitleaks detect --source .` before concluding a change.
 - Update this guide, `README.md`, `CHANGELOG.md`, and affected canonical docs
