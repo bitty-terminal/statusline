@@ -20,6 +20,8 @@ recorded here. The format follows
   (`lua/statusline/scene.lua`), and the activation entry point
   (`lua/statusline/init.lua`).
 - Lua 5.4 behavior suite, LuaLS conformance, and SDK manifest-lint wrapper.
+- Adopt the canonical `.editorconfig` baseline (`CTX-0023` slice); the
+  repository-metadata baseline guide and ADR-0011 remain Proposed.
 
 ### Changed
 
