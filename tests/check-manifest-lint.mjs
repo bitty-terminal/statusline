@@ -2,14 +2,17 @@
  * Authoritative manifest check: runs `bitty-plugin-lint` (R-SDK-2) from
  * `bitty-plugin-sdk` against `bitty-plugin.toml`.
  *
- * The transitional validator wired into `just manifest` stays the always-on
- * local gate; this script adds the accepted SDK check when the CLI is
- * discoverable and skips with exit 0 otherwise so CI stays deterministic.
+ * `just manifest` runs the pinned `bitty-plugin-lint` (installed from
+ * `bitty-plugin-sdk`) directly and is the always-on, fail-closed local gate.
+ * This script is an optional extra check: it runs the SDK CLI when it is
+ * discoverable and skips with exit 0 only when it is truly absent.
  *
  * Discovery order:
  *
  * 1. `BITTY_PLUGIN_LINT` — path to the CLI entry (`src/cli.ts`) or a wrapper.
- * 2. `bitty-plugin-lint` on `PATH`.
+ * 2. the repository-local `node_modules/.bin/bitty-plugin-lint` installed by
+ *    `just install` (the commit-pinned devDependency).
+ * 3. `bitty-plugin-lint` on `PATH`.
  *
  * Usage:
  *
@@ -26,6 +29,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(HERE, "..");
 const MANIFEST = join(REPO_ROOT, "bitty-plugin.toml");
 const TIMEOUT_MS = 60_000;
+const LOCAL_BIN_CANDIDATES = [
+  "bitty-plugin-lint",
+  "bitty-plugin-lint.cmd",
+  "bitty-plugin-lint.exe",
+].map((name) => join(REPO_ROOT, "node_modules", ".bin", name));
 
 function findOnPath(name) {
   const entries = (process.env.PATH ?? "").split(delimiter);
@@ -37,10 +45,18 @@ function findOnPath(name) {
   return undefined;
 }
 
+function findLocalBinary() {
+  return LOCAL_BIN_CANDIDATES.find((candidate) => existsSync(candidate));
+}
+
 function resolveLinter() {
   const override = process.env.BITTY_PLUGIN_LINT;
   if (override !== undefined && override !== "" && existsSync(override)) {
     return override;
+  }
+  const local = findLocalBinary();
+  if (local !== undefined) {
+    return local;
   }
   return findOnPath("bitty-plugin-lint");
 }

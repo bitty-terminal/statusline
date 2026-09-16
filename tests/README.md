@@ -11,8 +11,11 @@ CI; the individual suites are also available directly.
 - `bun` — the LuaLS and SDK-linter wrapper scripts.
 - `lua-language-server` (optional) — LuaLS conformance; the check skips with
   exit 0 when it is unavailable (CI does not install it).
-- `bitty-plugin-lint` from `bitty-plugin-sdk` (optional) — authoritative
-  manifest check; skipped unless discoverable (CI does not install it).
+- `bitty-plugin-lint` from `bitty-plugin-sdk` — authoritative manifest check,
+  installed at the commit pinned in `package.json`/`bun.lock` by `just install`
+  and run by `just manifest`. The optional `tests/check-manifest-lint.mjs`
+  wrapper discovers that local `node_modules/.bin` install first and skips only
+  when the CLI is truly absent.
 
 ## Commands
 
@@ -26,8 +29,9 @@ just test-lua
 # (LUA_LANGUAGE_SERVER=/path/to/server overrides discovery).
 just test-luals
 
-# Authoritative manifest check (SDK R-SDK-2);
-# BITTY_PLUGIN_LINT=/path/to/bitty-plugin-sdk/src/cli.ts forces the SDK CLI.
+# Authoritative manifest check (SDK R-SDK-2), pinned by commit and run by
+# `just manifest`; BITTY_PLUGIN_LINT=/path/to/bitty-plugin-sdk/src/cli.ts
+# forces the optional `just test-manifest` wrapper's SDK CLI.
 just test-manifest
 ```
 
@@ -44,7 +48,7 @@ just test-manifest
 | `lua-defs/bitty.d.lua`          | Vendored LuaLS definitions from bitty-plugin-sdk (origin/main `a7fcd2b`).              |
 | `lua-defs/negative-fixture.lua` | Excluded-surface fixture that LuaLS must reject.                                       |
 | `check-lua-luals.mjs`           | Positive/negative LuaLS workspace check.                                               |
-| `check-manifest-lint.mjs`       | Runs `bitty-plugin-lint` when discoverable.                                            |
+| `check-manifest-lint.mjs`       | Runs the pinned `bitty-plugin-lint` (`node_modules/.bin`, then `PATH`).                |
 
 ## Known gaps
 
@@ -55,6 +59,6 @@ just test-manifest
 - The `bitty` Lua bridge does not yet implement `bitty.ui.mount`/`update`, so
   `init_spec.lua` exercises overlay behavior against the local mock host only;
   in-host activation runs in command-only mode.
-- CI installs `lua5.4` but not `lua-language-server` or `bitty-plugin-lint`,
-  so those two wrappers report `skipped` (exit 0) in CI; install them locally,
-  or pin them into the workflow later, for full conformance coverage.
+- CI installs `lua5.4` and, through `bun install --frozen-lockfile`, the pinned
+  `bitty-plugin-lint` that `just manifest` runs; `lua-language-server` is not
+  installed, so the LuaLS wrapper reports `skipped` (exit 0) in CI.

@@ -24,15 +24,15 @@ beyond the manifest `[compat]` ranges.
 
 ## Layout
 
-| Path                            | Purpose                                                                                         |
-| ------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `bitty-plugin.toml`             | Static manifest: identity, compatibility, capability requests, and lazy triggers.               |
-| `lua/statusline/init.lua`       | Entry point evaluated once per activation; mounts the statusline block and refreshes on events. |
-| `lua/statusline/format.lua`     | Bounded, host-free component composition and code-point-safe truncation.                        |
-| `lua/statusline/scene.lua`      | Declarative `Row`/`Text` statusline composition.                                                |
-| `tests/`                        | Lua 5.4 behavior suite, LuaLS conformance, and the SDK manifest-lint wrapper.                   |
-| `scripts/validate-manifest.mjs` | Transitional manifest check; `bitty-plugin-lint` (R-SDK-2) is authoritative.                    |
-| `justfile`                      | Quality gates with pinned tool versions.                                                        |
+| Path                        | Purpose                                                                                         |
+| --------------------------- | ----------------------------------------------------------------------------------------------- |
+| `bitty-plugin.toml`         | Static manifest: identity, compatibility, capability requests, and lazy triggers.               |
+| `lua/statusline/init.lua`   | Entry point evaluated once per activation; mounts the statusline block and refreshes on events. |
+| `lua/statusline/format.lua` | Bounded, host-free component composition and code-point-safe truncation.                        |
+| `lua/statusline/scene.lua`  | Declarative `Row`/`Text` statusline composition.                                                |
+| `tests/`                    | Lua 5.4 behavior suite, LuaLS conformance, and the SDK manifest-lint wrapper.                   |
+| `package.json` / `bun.lock` | Commit-pinned dev dependencies, including the authoritative `bitty-plugin-lint`.                |
+| `justfile`                  | Quality gates with pinned tool versions.                                                        |
 
 ## Behavior
 
@@ -98,14 +98,17 @@ the `statusline` UI slot instead.
 Run the same gates CI runs:
 
 ```sh
-bun install --frozen-lockfile
+just install
 just check
 ```
 
-`just check` runs Markdown lint, Prettier format check, the transitional
-manifest validator, the pinned Lua parser, and the Lua/LuaLS/SDK-manifest test
-suites. `lua5.4` is required for the behavior suite; `lua-language-server` and
-`bitty-plugin-lint` are optional and their checks skip with exit 0 when absent.
+`just check` runs Markdown lint, Prettier format check, the authoritative
+`bitty-plugin-lint` manifest check (bitty-plugin-sdk, pinned by commit in
+`package.json` and `bun.lock`), the pinned Lua parser, and the Lua/LuaLS/
+SDK-manifest test suites. `lua5.4` is required for the behavior suite;
+`lua-language-server` is optional and its check skips with exit 0 when absent.
+`just install` is the only step that uses the network; every gate is offline
+afterward, and the gates fail closed when dependencies are missing.
 
 ## Install
 
