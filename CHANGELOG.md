@@ -26,6 +26,9 @@ recorded here. The format follows
   linter and every gate is offline after the one-time install.
 - Adopt the canonical `.editorconfig` baseline (`CTX-0023` slice); the
   repository-metadata baseline guide and ADR-0011 remain Proposed.
+- Repository metadata baseline: a tracked `.gitattributes` normalizing text
+  files to LF and marking binary assets, and a `packageManager` bun pin in
+  `package.json` with the regenerated `bun.lock` (`CTX-0006`).
 
 ### Changed
 
@@ -48,6 +51,10 @@ recorded here. The format follows
   (`terminal.semantic-read`, `ui.rich`) are unchanged from the bundled
   realization; the v1 hardening wave adds the `focus.changed` and
   `terminal.opened` lazy triggers.
+- Refresh `CONTRIBUTING.md` to the current contributor-guide structure
+  (ground rules, prerequisites, setup, delivery lifecycle, contributor
+  branches, capabilities, workflow snapshots) and align `SECURITY.md` with the
+  canonical `bitty-docs` security corpus (`CTX-0006`).
 
 ### Removed
 

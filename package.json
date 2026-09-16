@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "packageManager": "bun@1.4.2",
   "description": "Cwd, mode, Git and task statusline plugin for the Bitty terminal (bitty-terminal.statusline).",
   "license": "MIT",
   "devDependencies": {
