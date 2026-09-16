@@ -20,11 +20,24 @@ recorded here. The format follows
   (`lua/statusline/scene.lua`), and the activation entry point
   (`lua/statusline/init.lua`).
 - Lua 5.4 behavior suite, LuaLS conformance, and SDK manifest-lint wrapper.
+- Commit-pinned `bitty-plugin-sdk` dev dependency (`bitty-plugin-lint`,
+  R-SDK-2) in `package.json` and `bun.lock`, with `just install` and a
+  fail-closed `just deps` guard; `just manifest` runs the authoritative SDK
+  linter and every gate is offline after the one-time install.
 - Adopt the canonical `.editorconfig` baseline (`CTX-0023` slice); the
   repository-metadata baseline guide and ADR-0011 remain Proposed.
 
 ### Changed
 
+- Manifest validation now uses the authoritative commit-pinned
+  `bitty-plugin-lint` from `bitty-plugin-sdk` (ref `c3fa9b0`) instead of the
+  vendored transitional validator. The manifest schema stays owned by
+  bitty-docs; the gates fail closed when the pinned linter is not installed.
+- Every JavaScript gate now invokes the installed tool with `bun run <bin>`
+  instead of `bunx --bun <tool>@<pin>`, which re-resolved over the network and
+  broke the offline guarantee (`PX-0016`). Tool versions live in `package.json`
+  and `bun.lock` only (the justfile no longer declares pins), and `just check`
+  is proven offline under `unshare -rn`.
 - Realign package version from `0.1.0` to `0.0.1` per bitty-docs decision
   DIR-019 (everything pre-1.0-stable stays on the `0.0.x` line).
   `bitty-plugin.toml` and `package.json` stay in sync; no published tags or
@@ -36,8 +49,18 @@ recorded here. The format follows
   realization; the v1 hardening wave adds the `focus.changed` and
   `terminal.opened` lazy triggers.
 
+### Removed
+
+- Remove the vendored transitional `scripts/validate-manifest.mjs`. The SDK
+  linter is now the single source of manifest validation, closing the recorded
+  divergence risk tracked by the SDK manifest contract (R-SDK-2).
+
 ### Fixed
 
+- Discover the pinned `bitty-plugin-lint` from the repository-local
+  `node_modules/.bin` in `tests/check-manifest-lint.mjs`, so the optional
+  `just test-manifest` wrapper exercises the installed SDK linter instead of
+  skipping whenever the CLI is not on `PATH` (`PX-0016` reviewer note).
 - Hardened the v1 statusline path: refreshes keep the last-known-good row when
   a read, composition, or `bitty.ui.update` call is rejected instead of
   propagating to the event dispatcher; the block renders once at activation
