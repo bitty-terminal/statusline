@@ -36,7 +36,9 @@ beyond the manifest `[compat]` ranges.
 
 ## Behavior
 
-The plugin keeps the bundled statusline behavior and bounds:
+This package is the live home of the statusline behavior and bounds, carried
+over unchanged from the former bundled realization (removed from `bitty` in
+PR #1611, commit `5670d9ae`):
 
 - components composed from the read-only semantic snapshot: `cwd:` from the
   latest zone `metadata.cwd`, `title:` from the snapshot `title`, and `exit:`
@@ -58,7 +60,7 @@ The plugin keeps the bundled statusline behavior and bounds:
 Optional settings under `plugins.bitty-terminal.statusline.*` (`separator`,
 `show_cwd`, `show_title`, `show_exit`, `max_components`,
 `component_max_chars`) adapt the composition; every default matches the
-bundled realization. Settings are not part of the v1 manifest and are read
+former bundled realization. Settings are not part of the v1 manifest and are read
 through `bitty.settings.get`.
 
 ## What moved and what stayed bundled
@@ -69,11 +71,15 @@ explicit (OQ-053 decision record):
 - the **workspaceline claim** (ordering, exclusive claim, close policy) and
   workspace lifecycle are workspace-core behavior and stay bundled in `bitty`;
 - **shell integration** stays bundled and remains the upstream provider of the
-  OSC 7/133 semantic zones this plugin observes.
+  OSC 7/133 semantic zones this plugin observes; its read view lives in
+  `bitty_rich::shell::ShellIntegration`.
 
-The plugin id and capability identifiers (`terminal.semantic-read`, `ui.rich`)
-are unchanged from the bundled `bitty-terminal.statusline` manifest; the split
-changes no identity. The bundled realization used the lower-level Panel
+The historical bundled Rust statusline realization was removed from `bitty` in
+PR #1611 (commit `5670d9ae`); this package is now the only statusline
+realization. The plugin id and capability identifiers
+(`terminal.semantic-read`, `ui.rich`) are unchanged from the former bundled
+`bitty-terminal.statusline` manifest; the split changes no identity. The former
+bundled realization used the lower-level Panel
 Runtime (`PanelType::Helper`); the accepted Plugin API v1 Lua path composes in
 the `statusline` UI slot instead.
 
@@ -89,7 +95,7 @@ the `statusline` UI slot instead.
   Provider Ecology RFC is draft/post-1.0. The plugin composes its fragments
   into one host-owned `Row` as the v1 adapter.
 - **Git and task fragments.** The bundled presentation name includes Git and
-  task state, but the bundled Rust realization composed only cwd, title, and
+  task state, but the former bundled Rust realization composed only cwd, title, and
   exit code, and v1 exposes no Git/task service. Those fragments are not
   implemented here and follow the provider ecology.
 

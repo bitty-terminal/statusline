@@ -64,6 +64,12 @@ recorded here. The format follows
 
 ### Fixed
 
+- Retire stale citations of the deleted `bitty`
+  `crates/bitty-runtime/src/statusline.rs` as the live bundled realization:
+  `README.md` and `lua/statusline/format.lua` now name this package as the
+  live realization and record the bundled Rust realization's removal from
+  `bitty` (PR #1611, commit `5670d9ae`); the shell-integration read view is
+  cited at its current home, `bitty_rich::shell::ShellIntegration`.
 - Discover the pinned `bitty-plugin-lint` from the repository-local
   `node_modules/.bin` in `tests/check-manifest-lint.mjs`, so the optional
   `just test-manifest` wrapper exercises the installed SDK linter instead of
