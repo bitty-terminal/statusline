@@ -2,10 +2,13 @@
 -- (bitty-terminal.statusline).
 --
 -- Pure functions with no host dependency, so the presentation policy is unit
--- testable in plain Lua. The numeric bounds mirror the bundled Rust
--- realization (`bitty` `crates/bitty-runtime/src/statusline.rs`): at most `8`
--- components, `64` characters per component value, and `128` characters total
--- (the host overlay text bound `MAX_OVERLAY_TEXT_LEN`). Options are clamped
+-- testable in plain Lua. This package is the independent first-party
+-- realization and the live home of the statusline envelope; the historical
+-- bundled Rust realization was removed from `bitty` (PR #1611, commit
+-- `5670d9ae`). The plugin's own numeric bounds, carried over unchanged from
+-- that realization, are at most `8` components, `64` characters per component
+-- value, and `128` characters total (the host overlay text bound
+-- `MAX_OVERLAY_TEXT_LEN`). Options are clamped
 -- into those bounds with NaN/infinity rejected (R13), and reads inspect only
 -- the newest `MAX_ZONES` semantic zones (R14).
 --
@@ -172,7 +175,8 @@ end
 -- Components for `snapshot`: `cwd:`, `title:` (from the snapshot title), and
 -- `exit:` (from the latest zone exit code). Each value is truncated to the
 -- per-component bound; output is bounded to the component count. Component
--- prefixes are intentional and mirror the bundled realization. `stats`, when
+-- prefixes are intentional and carried over from the former bundled
+-- realization. `stats`, when
 -- provided, receives truncation records from the zone scan.
 function M.components(snapshot, opts, stats)
   snapshot = type(snapshot) == "table" and snapshot or {}
